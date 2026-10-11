@@ -38,10 +38,17 @@ public:
     virtual void OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result) override;
     void AIStateInterrupted();
 
+protected:
+    UPROPERTY()
+    TObjectPtr<UNavigationPath> m_CurrentPath;
 
 private:
     virtual void GoToBestTarget(float deltaTime) override;
     virtual void ShowNavigationPath() override;
+    void setCurrentPath(AActor* actor);
+
+    void DrawPath();
+
 
     PedestrianState m_PedestrianState{ PedestrianState::SPAWNED };
 };

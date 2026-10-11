@@ -19,6 +19,66 @@ ASDTAIController::ASDTAIController(const FObjectInitializer& ObjectInitializer)
            
 }
 
+
+#include "NavigationSystem.h"
+#include "NavigationPath.h"
+#include "DrawDebugHelpers.h"
+
+void ASDTAIController::setCurrentPath(AActor* actor)
+{
+    APawn* pawn = GetPawn();
+    if (!pawn || !actor)
+    {
+        return;
+    }
+
+    m_CurrentPath = UNavigationSystemV1::FindPathToLocationSynchronously(
+        GetWorld(),
+        pawn->GetActorLocation(),
+        actor->GetActorLocation(),
+        pawn
+    );
+
+    if (!m_CurrentPath || !m_CurrentPath->IsValid())
+    {
+        m_CurrentPath = nullptr;
+        return;
+    }
+}
+
+void ASDTAIController::DrawPath() 
+{
+    if (!m_CurrentPath) 
+    {
+        return;
+    }
+    const TArray<FVector>& points = m_CurrentPath->PathPoints;
+
+    for (int32 i = 0; i < points.Num() - 1; ++i)
+    {
+        DrawDebugLine(
+            GetWorld(),
+            points[i] + FVector(0, 0, 20),
+            points[i + 1] + FVector(0, 0, 20),
+            FColor::Green,
+            false,
+            0.0f,
+            0,
+            5.0f
+        );
+    }
+
+    DrawDebugSphere(
+        GetWorld(),
+        points.Last() + FVector(0, 0, 20),
+        12.0f,
+        8,
+        FColor::Red,
+        false,
+        0.0f
+    );
+}
+
 void ASDTAIController::GoToBestTarget(float deltaTime)
 {
     //Move to target depending on current behavior
@@ -40,7 +100,7 @@ void ASDTAIController::GoToBestTarget(float deltaTime)
             if (actor != nullptr)
             {
                 // TODO : Agents wants to move towards actor
-
+                setCurrentPath(actor);
                 m_PedestrianState = PedestrianState::GO_TO_BRIDGE;
             }
             break;
@@ -73,6 +133,7 @@ void ASDTAIController::GoToBestTarget(float deltaTime)
             if (actor != nullptr)
             {
                 // TODO : Agents wants to move towards actor
+                setCurrentPath(actor);
             }
             
             break;
@@ -86,6 +147,7 @@ void ASDTAIController::GoToBestTarget(float deltaTime)
             break;
         }
     }
+    DrawPath();
 }
 
 void ASDTAIController::OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result)

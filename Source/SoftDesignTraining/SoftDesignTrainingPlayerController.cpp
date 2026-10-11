@@ -86,6 +86,78 @@ void ASoftDesignTrainingPlayerController::MoveCharacter()
     // TODO : find the position of the mouse in the world 
     // And move the agent to this position IF possible
     // Validate you can move through m_CanMoveCharacter
+
+    if (!m_CanMoveCharacter)
+    {
+        return;
+    }
+
+    APawn* pawn = GetPawn();
+    if (!pawn)
+    {
+        return;
+    }
+
+    FHitResult hit;
+    if (!GetHitResultUnderCursor(ECC_Visibility, false, hit))
+    {
+        return;
+    }
+    FlushPersistentDebugLines(GetWorld());
+
+    m_CurrentPath = UNavigationSystemV1::FindPathToLocationSynchronously(
+        GetWorld(),
+        pawn->GetActorLocation(),
+        hit.Location,
+        pawn
+    );
+
+    if (!m_CurrentPath || !m_CurrentPath->IsValid())
+    {
+        m_CurrentPath = nullptr;
+        return;
+    }
+    DrawPath();
+}
+
+void ASoftDesignTrainingPlayerController::DrawPath() 
+{
+    if (!m_CurrentPath)
+    {
+        return;
+    }
+    const TArray<FVector>& points = m_CurrentPath->PathPoints;
+
+    for (int32 i = 0; i < points.Num() - 1; ++i)
+    {
+        DrawDebugLine(
+            GetWorld(),
+            points[i] + FVector(0, 0, 20),
+            points[i + 1] + FVector(0, 0, 20),
+            FColor::Green,
+            true,
+            -1.0f,
+            0,
+            5.0f
+        );
+
+        DrawDebugSphere(
+            GetWorld(),
+            points[i] + FVector(0, 0, 20),
+            12.0f,
+            8,
+            FColor::Yellow,
+            true
+        );
+    }
+    DrawDebugSphere(
+        GetWorld(),
+        points.Last() + FVector(0, 0, 20),
+        12.0f,
+        8,
+        FColor::Red,
+        true
+    );
 }
 
 void ASoftDesignTrainingPlayerController::Activate()

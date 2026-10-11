@@ -2,6 +2,8 @@
 #pragma once
 #include "GameFramework/PlayerController.h"
 #include "SDTPathFollowingComponent.h"
+#include "NavigationSystem.h"
+#include "NavigationPath.h"
 #include "SoftDesignTrainingPlayerController.generated.h"
 
 class ASDTBridge;
@@ -27,12 +29,16 @@ protected:
 
     void MoveCharacter();
 
+    void DrawPath();
+
     void Activate();
     void Deactivate();
 
 protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Navigation, meta = (AllowPrivateAccess = "true"))
     USDTPathFollowingComponent* m_PathFollowingComponent;
+    UPROPERTY()
+    TObjectPtr<UNavigationPath> m_CurrentPath;
 
     bool m_CanMoveCharacter;
 
