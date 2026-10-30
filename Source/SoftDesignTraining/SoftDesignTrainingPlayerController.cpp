@@ -118,6 +118,7 @@ void ASoftDesignTrainingPlayerController::MoveCharacter()
         return;
     }
     DrawPath();
+    UAIBlueprintHelperLibrary::SimpleMoveToLocation(this,hit.Location);  // pour commencer a suivre le chemin
 }
 
 void ASoftDesignTrainingPlayerController::DrawPath() 

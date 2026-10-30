@@ -44,6 +44,8 @@ void ASDTAIController::setCurrentPath(AActor* actor)
         m_CurrentPath = nullptr;
         return;
     }
+
+    MoveToLocation(actor->GetActorLocation()); // pour commencer a suivre le chemin
 }
 
 void ASDTAIController::DrawPath() 

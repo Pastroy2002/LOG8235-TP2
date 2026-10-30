@@ -32,6 +32,13 @@ void USDTPathFollowingComponent::FollowPathSegment(float DeltaTime)
     else
     {
         // Update navigation along path (move along)
+        AController* controller = Cast<AController>(GetOwner());
+        APawn* pawn = controller->GetPawn();
+        UNavMovementComponent* movement = Cast<UNavMovementComponent>(pawn->GetMovementComponent());
+        FVector direction = segmentEnd.Location - pawn->GetActorLocation();;
+        direction.Z = 0.0f;
+        direction.Normalize();
+        movement->RequestPathMove(direction);
     }
 }
 
