@@ -25,15 +25,23 @@ void USDTPathFollowingComponent::FollowPathSegment(float DeltaTime)
     const FNavPathPoint& segmentStart = points[MoveSegmentStartIndex];
     const FNavPathPoint& segmentEnd = points[MoveSegmentEndIndex];
 
-    if (SDTUtils::HasJumpFlag(segmentStart))
+    AController* controller = Cast<AController>(GetOwner());
+    APawn* pawn = controller->GetPawn();
+
+    if (isJumping) //if (SDTUtils::HasJumpFlag(segmentStart))
     {
         // Update jump along path / nav link proxy
+        jumProgress += DeltaTime;
+        float time = FMath::Clamp(jumProgress, 0.f, 1.f);
+        FVector location = FMath::Lerp(segmentStart.Location, segmentEnd.Location, time);
+        location.Z += 300.f * 4.f * time * (1.f - time);
+        pawn->SetActorLocation(location);
+        if (time >= 1.f) isJumping = false;    
     }
     else
     {
         // Update navigation along path (move along)
-        AController* controller = Cast<AController>(GetOwner());
-        APawn* pawn = controller->GetPawn();
+        
         UNavMovementComponent* movement = Cast<UNavMovementComponent>(pawn->GetMovementComponent());
         FVector direction = segmentEnd.Location - pawn->GetActorLocation();;
         direction.Z = 0.0f;
@@ -54,13 +62,16 @@ void USDTPathFollowingComponent::SetMoveSegment(int32 segmentStartIndex)
 
     const FNavPathPoint& segmentStart = points[MoveSegmentStartIndex];
 
-    if (SDTUtils::HasJumpFlag(segmentStart) && FNavMeshNodeFlags(segmentStart.Flags).IsNavLink())
+    if (FNavMeshNodeFlags(segmentStart.Flags).IsNavLink()) //DTUtils::HasJumpFlag(segmentStart) && 
     {
         // Handle starting jump
+        jumProgress = 0.f;
+        isJumping = true;
     }
     else
     {
         // Handle normal segments
+        isJumping = false;
     }
 }
 
