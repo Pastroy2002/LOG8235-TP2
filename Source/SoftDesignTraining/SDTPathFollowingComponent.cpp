@@ -31,8 +31,8 @@ void USDTPathFollowingComponent::FollowPathSegment(float DeltaTime)
     if (isJumping) //if (SDTUtils::HasJumpFlag(segmentStart))
     {
         // Update jump along path / nav link proxy
-        jumProgress += DeltaTime;
-        float time = FMath::Clamp(jumProgress, 0.f, 1.f);
+        jumpProgress += DeltaTime;
+        float time = FMath::Clamp(jumpProgress, 0.f, 1.f);
         FVector location = FMath::Lerp(segmentStart.Location, segmentEnd.Location, time);
         location.Z += 300.f * 4.f * time * (1.f - time);
         pawn->SetActorLocation(location);
@@ -65,7 +65,7 @@ void USDTPathFollowingComponent::SetMoveSegment(int32 segmentStartIndex)
     if (FNavMeshNodeFlags(segmentStart.Flags).IsNavLink()) //DTUtils::HasJumpFlag(segmentStart) && 
     {
         // Handle starting jump
-        jumProgress = 0.f;
+        jumpProgress = 0.f;
         isJumping = true;
     }
     else
