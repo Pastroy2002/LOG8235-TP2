@@ -6,6 +6,9 @@
 #include "SDTPathFollowingComponent.h"
 #include "SDTBridge.h"
 #include "SDTBoat.h"
+#include "Navigation/PathFollowingComponent.h"
+#include "NavigationPath.h"
+#include "DrawDebugHelpers.h"
 
 #include "SDTBoatOperator.h"
 
@@ -29,6 +32,10 @@ void ASDTBoatAIController::GoToBestTarget(float deltaTime)
 			if (actor != nullptr)
 			{
 				// TODO : Agents wants to move towards actor
+				EPathFollowingRequestResult::Type res = MoveToLocation(actor->GetActorLocation());
+				if (res != EPathFollowingRequestResult::Failed) {
+					m_ReachedTarget = false;
+				}
 
 				m_BoatState = BoatState::GO_TO_START_BRIDGE;
 			}
@@ -70,6 +77,10 @@ void ASDTBoatAIController::GoToBestTarget(float deltaTime)
 					// TODO : we want to move the agent towards the DropLocation of the boatOperator 
 					// Check ASDTBoatOperator::GetDropLocation to get the location.
 					// Note that m_ReachedTarget should be set to FALSE if the move is valid!
+					EPathFollowingRequestResult::Type res = MoveToLocation(boatOperator->GetDropLocation());
+					if (res != EPathFollowingRequestResult::Failed){
+						m_ReachedTarget = false;
+					}
 
 					break;
 				}
@@ -104,6 +115,10 @@ void ASDTBoatAIController::GoToBestTarget(float deltaTime)
 				if (actor != nullptr)
 				{
 					// TODO : Agents wants to move towards actor
+					EPathFollowingRequestResult::Type res = MoveToLocation(actor->GetActorLocation());
+					if (res != EPathFollowingRequestResult::Failed) {
+						m_ReachedTarget = false;
+					}
 				}
 			}
 
@@ -134,15 +149,56 @@ void ASDTBoatAIController::NotifyUnloadComplete()
 	if (actor != nullptr)
 	{
 		// TODO : Agents wants to move towards actor
+		EPathFollowingRequestResult::Type res = MoveToLocation(actor->GetActorLocation());
+		if (res != EPathFollowingRequestResult::Failed) {
+			m_ReachedTarget = false;
+		}
 	}
 }
 
 void ASDTBoatAIController::ShowNavigationPath()
 {
-	// Show current navigation path DrawDebugLine and DrawDebugSphere
-	// Use the UPathFollowingComponent of the AIController to get the path
-	// This function is called while m_ReachedTarget is false 
-	// Check void ASDTBaseAIController::Tick for how it works.
+	UPathFollowingComponent* PathFollowingComp = GetPathFollowingComponent();
+	if (!PathFollowingComp){ return; }
+
+	const FNavPathSharedPtr NavPath = PathFollowingComp->GetPath();
+	if (!NavPath.IsValid()){ return; }
+
+	UWorld* World = GetWorld();
+	if (!World){ return; }
+
+	const TArray<FNavPathPoint>& points = NavPath->GetPathPoints();
+
+	for (int32 i = 0; i < points.Num() - 1; ++i)
+	{
+		DrawDebugLine(
+			GetWorld(),
+			points[i].Location + FVector(0, 0, 20),
+			points[i + 1].Location + FVector(0, 0, 20),
+			FColor::Green,
+			false,
+			-1.0f,
+			0,
+			5.0f
+		);
+
+		DrawDebugSphere(
+			GetWorld(),
+			points[i].Location + FVector(0, 0, 20),
+			12.0f,
+			8,
+			FColor::Yellow,
+			false
+		);
+	}
+	DrawDebugSphere(
+		GetWorld(),
+		points.Last().Location + FVector(0, 0, 20),
+		12.0f,
+		8,
+		FColor::Red,
+		false
+	);
 }
 
 BoatState ASDTBoatAIController::GetBoatState()
